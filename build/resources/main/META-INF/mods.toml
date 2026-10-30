@@ -4,8 +4,9 @@ license="MIT"
 
 [[mods]]
 modId="whimsical_ideas"
-version="1.0.0"
+version="1.0.1"
 displayName="Whimsical Ideas"
+authors="yurler"
 description='''Whimsical Ideas - a simple plushie doll mod.'''
 
 [[dependencies.whimsical_ideas]]

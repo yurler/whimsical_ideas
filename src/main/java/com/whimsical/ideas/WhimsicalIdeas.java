@@ -1,22 +1,22 @@
 package com.whimsical.ideas;
 
 import com.mojang.logging.LogUtils;
+import com.whimsical.ideas.client.MusicManager;
 import com.whimsical.ideas.network.ModNetwork;
 import net.minecraft.client.gui.screens.MenuScreens;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
@@ -35,6 +35,7 @@ public class WhimsicalIdeas {
     public static final DeferredRegister<Item> ITEMS =
             DeferredRegister.create(ForgeRegistries.ITEMS, MOD_ID);
 
+    // ---------- 方块与物品注册 ----------
     public static final RegistryObject<Block> PLUSHIE_BLOCK = BLOCKS.register("plushie_doll",
             () -> new PlushieBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.WOOL)
@@ -61,18 +62,22 @@ public class WhimsicalIdeas {
             ITEMS.register("plushie_crafting_table",
                     () -> new BlockItem(PLUSHIE_CRAFTING_TABLE_BLOCK.get(), new Item.Properties()));
 
+    // ---------- 构造函数 ----------
     public WhimsicalIdeas(FMLJavaModLoadingContext context) {
         IEventBus modBus = context.getModEventBus();
 
+        // 注册基础内容
         BLOCKS.register(modBus);
         ITEMS.register(modBus);
         ModBlockEntities.register(modBus);
         ModMenuTypes.MENUS.register(modBus);
         ModCreativeTabs.TABS.register(modBus);
-
         ModNetwork.register();
+        MusicManager.init();
+        net.minecraftforge.fml.ModLoadingContext.get().registerConfig(net.minecraftforge.fml.config.ModConfig.Type.CLIENT, Config.SPEC);
     }
 
+    // ---------- 客户端事件 ----------
     @Mod.EventBusSubscriber(modid = MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
     public static class ClientEvents {
 
@@ -89,26 +94,12 @@ public class WhimsicalIdeas {
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event) {
             event.enqueueWork(() -> {
+                // 注册玩偶制作台 GUI
                 MenuScreens.register(
                         ModMenuTypes.PLUSHIE_CRAFTING_TABLE.get(),
                         PlushieCraftingTableScreen::new
                 );
             });
-        }
-    }
-    @Mod.EventBusSubscriber(modid = MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
-    public static class ForgeEvents {
-
-        @SubscribeEvent
-        public static void onItemCrafted(PlayerEvent.ItemCraftedEvent event) {
-            ItemStack crafted = event.getCrafting();
-            Player player = event.getEntity();
-
-            // 如果合成出来的是空白玩偶，检查是否有玩偶被消耗
-            if (crafted.getItem() instanceof BlankPlushieItem) {
-                // 这里需要配合一个“玩偶 -> 空白玩偶”的配方
-                // 配方在数据包 JSON 里定义
-            }
         }
     }
 }

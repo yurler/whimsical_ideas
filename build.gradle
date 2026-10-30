@@ -103,5 +103,7 @@ tasks.named('jar', Jar).configure {
                 'Implementation-Vendor' : mod_authors,
         ])
     }
+    from rootProject.file('LICENSE')
+
     finalizedBy 'reobfJar'
 }
